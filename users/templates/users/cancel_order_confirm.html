@@ -1,0 +1,52 @@
+{% extends 'base_auth.html' %}
+
+{% block title %}Confirm Cancellation - CanteenClick{% endblock %}
+
+{% block content %}
+<h2 class="card-title text-center mb-3 text-danger">Are you sure?</h2>
+<p class="text-center text-muted">You are about to cancel this order. This can only be done while the order is still "Pending".</p>
+
+<div class="card bg-light border-0 my-4">
+  <div class="card-header bg-light border-0">
+    <strong>Order #{{ order.id }}</strong>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for item in order.items.all %}
+    <li class="list-group-item bg-light d-flex justify-content-between">
+      <div>
+        <!-- This shows "Cheesy Fries" -->
+        <strong>{{ item.item_variation.menu_item.name }}</strong>
+        <!-- This shows "Full" -->
+        <small class="text-muted ms-2">{{ item.item_variation.name }}</small>
+      </div>
+      <span class="text-muted">{{ item.quantity }} x</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label for="reason" class="form-label fw-bold">Please select a reason for cancellation:</label>
+        <select name="reason" class="form-select" id="reason">
+            <option value="Changed my mind">Changed my mind</option>
+            <option value="Ordered by mistake">Ordered by mistake</option>
+            <option value="Wait time is too long">Wait time is too long</option>
+            <option value="Other">Other</option>
+        </select>
+    </div>
+
+    <!-- 
+      This uses your custom color classes:
+      - "btn-primary" (orange) for the main action
+      - "text-accent" (orange) for the secondary link
+    -->
+    <button type="submit" class="btn btn-danger btn-lg w-100">Confirm Cancellation</button>
+</form>
+
+<div class="text-center mt-3">
+    <a href="{% url 'order-history' %}" class="fw-bold text-accent">Go Back</a>
+</div>
+{% endblock %}

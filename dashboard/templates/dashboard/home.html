@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vendor Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f9f9f9; }
+        h1 { color: #333; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .status-pending { color: #e67e22; font-weight: bold; }
+        .status-preparing { color: #3498db; font-weight: bold; }
+        .status-ready { color: #2ecc71; font-weight: bold; }
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #d4edda; /* Green for success */
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+   {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <h1>Vendor Dashboard</h1>
+    <h2>Welcome, {{ vendor_name }}!</h2>
+
+<a href="{% url 'verify-pickup' %}" style="
+    display: block;
+    padding: 15px;
+    background: #28a745;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1.2em;
+    border-radius: 5px;
+    margin: 20px 0;
+">
+    Verify QR Code for Pickup
+</a>
+<hr>
+
+<h3>Your Active Orders</h3>
+    
+
+    {% if active_orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Placed At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in active_orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.user.username }}</td>
+                    <td>
+                        {% if order.status == 'Pending' %}
+                            <span class="status-pending">{{ order.status }}</span>
+                        {% elif order.status == 'Preparing' %}
+                            <span class="status-preparing">{{ order.status }}</span>
+                        {% else %}
+                            <span class="status-ready">{{ order.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>₹{{ order.total_price }}</td>
+                    <td>{{ order.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                    <a href="{% url 'order-details' order.id %}">View Details</a>                    
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You have no active orders.</p>
+    {% endif %}
+
+    <hr style="margin-top: 40px;">
+
+    <h3>Completed Orders (Today) - Total: {{ completed_count }}</h3>
+
+    {% if completed_orders_today %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Completed At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in completed_orders_today %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.user.username }}</td>
+                    <td>
+                        <span style="color: #28a745; font-weight: bold;">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td>₹{{ order.total_price }}</td>
+                    <td>{{ order.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        <a href="{% url 'order-details' order.id %}">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You have not completed any orders today.</p>
+    {% endif %}
+
+<hr style="margin-top: 40px;">
+
+<h3>Cancelled Orders (Today) - Total: {{ cancelled_count }}</h3>
+
+{% if cancelled_orders_today %}
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Cancelled At</th>
+                <th>Cancelled By</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in cancelled_orders_today %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.user.username }}</td>
+
+                <td>{{ order.updated_at|date:"d M Y, H:i" }}</td>
+
+                <td>{{ order.get_cancelled_by_display }}</td>
+
+                <td>{{ order.cancellation_reason }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>You have not cancelled any orders today.</p>
+{% endif %}
+
+    <hr style="margin-top: 30px;">
+    <a href="{% url 'core:home' %}">View Main Site</a> | 
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

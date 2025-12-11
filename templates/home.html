@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  {% if request.user.is_staff %}
+  <div class="card shadow-sm mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+      <h3 class="h4 mb-0">Quick Actions (Vendor)</h3>
+    </div>
+    <div class="card-body">
+      <p class="text-muted">Welcome back! Manage your menu, counters, and orders from here.</p>
+
+      <a href="{% url 'dashboard-home' %}" class="btn btn-primary">
+        View Full Dashboard
+      </a>
+      <a href="{% url 'admin:menu_menuitem_add' %}" class="btn btn-outline-dark" target="_blank">
+        Add New Item
+      </a>
+      <a href="{% url 'admin:menu_menuitem_changelist' %}" class="btn btn-outline-dark" target="_blank">
+        View/Edit All Items
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-12 text-center mb-4">
+      <h2>Browse Counters</h2>
+      <p class="lead">Select a counter to see its menu.</p>
+      <hr>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    {% if counters %}
+    {% for counter in counters %}
+    <div class="col-md-6 col-lg-4">
+
+      {% if request.user.is_authenticated %}
+      <a href="{% url 'menu:counter_menu' counter.id %}" class="text-decoration-none text-dark">
+        <div class="card shadow-sm h-100">
+
+          <div
+            style="height: 200px; overflow: hidden; background-color: #f0f0f0; border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem;">
+            {% if counter.image %}
+            <img src="{{ counter.image.url }}" class="card-img-top" alt="{{ counter.name }}"
+              style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            <img src="https://via.placeholder.com/400x250?text={{ counter.name }}" class="card-img-top" alt="No Image"
+              style="width: 100%; height: 100%; object-fit: cover;">
+            {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ counter.name }}</h5>
+            <p class="card-text">{{ counter.description|truncatewords:15 }}</p>
+            <span class="btn btn-primary mt-auto">View Menu</span>
+          </div>
+        </div>
+      </a>
+
+      {% else %}
+      <a href="{% url 'login' %}" class="text-decoration-none text-dark">
+        <div class="card shadow-sm h-100">
+
+          <div
+            style="height: 200px; overflow: hidden; background-color: #f0f0f0; border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem;">
+            {% if counter.image %}
+            <img src="{{ counter.image.url }}" class="card-img-top" alt="{{ counter.name }}"
+              style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            <img src="https://via.placeholder.com/400x250?text={{ counter.name }}" class="card-img-top" alt="No Image"
+              style="width: 100%; height: 100%; object-fit: cover;">
+            {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ counter.name }}</h5>
+            <p class="card-text">{{ counter.description|truncatewords:15 }}</p>
+            <span class="btn btn-secondary mt-auto">Login to View Menu</span>
+          </div>
+        </div>
+      </a>
+      {% endif %}
+
+    </div> {% endfor %}
+
+    {% else %}
+    <div class="col-12">
+      <div class="alert alert-info" role="alert">
+        No counters have been added yet. Please check back later.
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

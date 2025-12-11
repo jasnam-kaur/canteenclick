@@ -1,0 +1,5 @@
+Django
+gunicorn
+psycopg2-binary  # For PostgreSQL database connection
+dj-database-url  # To parse the DATABASE_URL environment variable
+whitenoise       # For serving static files in production

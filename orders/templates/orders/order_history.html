@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-10 col-xl-8 mx-auto">
+      
+      <h1 class="h2 mb-4">My Order History</h1>
+
+      {% if orders %}
+        <div class="list-group shadow-sm">
+          {% for order in orders %}
+          <a href="#" class="list-group-item list-group-item-action p-3">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">Order #{{ order.id }}</h5>
+              <small class="text-muted">{{ order.created_at|date:"d M Y, P" }}</small>
+            </div>
+            
+            <p class="mb-1">
+              {% if order.status == 'Completed' %}
+                <span class="badge bg-success">{{ order.get_status_display }}</span>
+              {% elif order.status == 'Cancelled' %}
+                <span class="badge bg-danger">{{ order.get_status_display }}</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+              {% endif %}
+            </p>
+            
+            <small class="text-muted">
+              {% for item in order.items.all %}
+                {{ item.item_variation.menu_item.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </small>
+
+            <div class="d-flex justify-content-end fw-bold fs-5 mt-2">
+              Total: ₹{{ order.total_price }}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info text-center" role="alert">
+          <h4 class="alert-heading">No orders yet!</h4>
+          <p>You haven't placed any orders. Why not check out the menu?</p>
+          <hr>
+          <a href="{% url 'core:home' %}" class="btn btn-primary">Browse Counters</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

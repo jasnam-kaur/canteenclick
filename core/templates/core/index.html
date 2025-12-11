@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Home - CanteenClick{% endblock %}
+
+{% block content %}
+    <div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">Welcome to CanteenClick!</h1>
+            <p class="col-md-8 fs-4">Skip the queue, not the meal.</p>
+
+            <a href="{% url 'menu-list' %}" class="btn btn-primary btn-lg">View Menu</a>
+        </div>
+    </div>
+
+    {% endblock %}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tracking Your Order</title>
+    <style>
+        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f4f4f4; }
+        .tracker { text-align: center; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        #order-status {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .status-Pending { color: #e67e22; background-color: #fdf3e8; }
+        .status-Preparing { color: #3498db; background-color: #eaf5fb; }
+        .status-Ready-for-Pickup { color: #2ecc71; background-color: #eafaf1; }
+    </style>
+</head>
+<body>
+    <div class="tracker">
+        <h1>Tracking Order #{{ order.id }}</h1>
+        <p>Your order status will update here in real-time.</p>
+
+        <div id="order-status" class="status-{{ order.status }}">
+            {{ order.get_status_display }}
+        </div>
+
+        <a href="{% url 'order-history' %}">Back to My Orders</a>    </div>
+
+    <script>
+        // This is the ID of the order we are tracking
+        const orderId = { orderid };
+        const statusUrl = `/orders/check-status/${orderId}/`;
+
+        // This function will run every 5 seconds
+        const interval = setInterval(checkStatus, 5000);
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(statusUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+
+                // Get the HTML element
+                const statusElement = document.getElementById('order-status');
+
+                // Update the text
+                statusElement.textContent = data.status;
+
+                // Update the styling class
+                // We replace spaces in "Ready for Pickup" with hyphens for CSS
+                const statusClass = "status-" + data.status.replace(/ /g, '-');
+                statusElement.className = ''; // Clear old classes
+                statusElement.classList.add(statusClass);
+
+                // If the order is Completed or Cancelled, stop polling
+                if (data.status === 'Completed' || data.status === 'Cancelled') {
+                    clearInterval(interval);
+                }
+
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                clearInterval(interval); // Stop polling on error
+            }
+        }
+    </script>
+</body>
+</html>

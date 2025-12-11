@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Full Menu - CanteenClick{% endblock %}
+
+{% block style %}
+<style>
+    /* Custom styles for the menu page */
+    .counter-title {
+        /* This uses your charcoal color from the navbar */
+        border-bottom: 3px solid var(--canteen-charcoal);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .item-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Makes all cards in a row the same height */
+    }
+    
+    .item-card-body {
+        flex-grow: 1; /* This is the key: it pushes the footer to the bottom */
+    }
+
+    /* === NEW: This is the style for our new action row === */
+    .variation-action-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .variation-action-row:last-child {
+        border-bottom: none;
+    }
+    
+    .variation-info {
+        flex-grow: 1;
+    }
+    .variation-name {
+        font-weight: 500;
+        color: #333;
+    }
+    .variation-price {
+        font-size: 0.9em;
+        color: #555;
+    }
+    
+    .variation-action-row .btn-sm {
+        /* Make the "Add" button compact */
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h1 class="display-6 fw-bold">Canteen Menu</h1>
+    
+    <div class="mb-4">
+        <input type="text" id="menu-search-bar" class="form-control form-control-lg" placeholder="Search for a dish...">
+    </div>
+    
+    {% for counter in counters %}
+        <div class="counter-section mb-5">
+            <h2 class="counter-title">{{ counter.name }}</h2>
+            <p class="text-muted"><i>Operated by: {{ counter.vendor.name }}</i></p>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                
+                {% for item in counter.menuitem_set.all %}
+                    <div class="col item"> <div class="card shadow-sm border-0 h-100 item-card">
+                            
+                            <div class="card-body item-card-body">
+                                <h5 class="card-title item-name">{{ item.name }}</h5>
+                                {% if item.description %}
+                                    <p class="card-text small text-muted">{{ item.description }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="card-footer bg-white border-0 pt-0 p-3">
+                                
+                                {% for variation in item.variations.all %}
+                                    <form method="POST" action="{% url 'add-to-cart' variation.id %}">
+                                        {% csrf_token %}
+                                        
+                                        <div class="variation-action-row">
+                                            <div class="variation-info">
+                                                <span class="variation-name">{{ variation.name }}</span>
+                                                <br>
+                                                <span class="variation-price">₹{{ variation.price }}</span>
+                                            </div>
+                                            
+                                            {% if user.is_authenticated %}
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    Add
+                                                </button>
+                                            {% else %}
+                                                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-sm">Login</a>
+                                            {% endif %}
+                                        </div>
+                                    </form>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col">
+                        <p>No items available at this counter yet.</p>
+                    </div>
+                {% endfor %}
+                
+            </div> </div>
+    {% endfor %}
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    const searchBar = document.getElementById('menu-search-bar');
+    searchBar.addEventListener('keyup', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const allCounters = document.querySelectorAll('.counter-section');
+        allCounters.forEach(function(counter) {
+            let counterHasAMatch = false;
+            const itemsInCounter = counter.querySelectorAll('.item');
+            itemsInCounter.forEach(function(item) {
+                const itemName = item.querySelector('.item-name').textContent.toLowerCase();
+                if (itemName.includes(searchText)) {
+                    item.style.display = 'block';
+                    counterHasAMatch = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            if (counterHasAMatch) {
+                counter.style.display = 'block';
+            } else {
+                counter.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Pickup</title>
+    <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f9f9f9; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h1 { color: #333; }
+    form { display: flex; flex-direction: column; margin-top: 20px; }
+    label { font-size: 1.1em; margin-bottom: 5px; }
+    input[type="text"] { padding: 12px; font-size: 1.2em; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 12px 15px; font-size: 1.1em; background: #28a745; color: white; border: none; cursor: pointer; margin-top: 15px; }
+
+    /* --- UPDATED MESSAGE STYLES --- */
+    .messages {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0 0;
+    }
+    .messages li {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        color: #fff;
+        font-weight: 500;
+    }
+    .messages li.success { background-color: #28a745; }
+    .messages li.error { background-color: #dc3545; }
+    .messages li.warning { background-color: #ffc107; color: #333; }
+    .messages li.info { background-color: #17a2b8; }
+</style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'dashboard-home' %}">&larr; Back to Dashboard</a>
+
+        <h1>Verify Order Pickup</h1>
+        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+        <p>Enter the 5-digit Pickup Code from the student to verify.</p>
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<div id="qr-reader-container" style="width: 100%; max-width: 500px; margin: 20px auto;">
+    <div id="qr-reader" style="border: 1px solid #ddd; border-radius: 8px;"></div>
+</div>
+<button id="start-scan-btn" style="
+    width: 100%; padding: 10px; font-size: 1em;
+    background: #007bff; color: white; border: none;
+    cursor: pointer; margin-bottom: 20px;
+">
+    Start Camera Scan
+</button>
+<form method="POST">
+<form method="POST">
+    {% csrf_token %}
+    <label for="order_id">5-Digit Pickup Code:</label>
+    <input type="text" name="order_id" id="order_id" placeholder="e.g., 82159">
+    <button type="submit">Verify & Complete Order</button>
+</form>
+</body>
+
+<script>
+    // This function runs when the QR code is successfully scanned
+    function onScanSuccess(decodedText, decodedResult) {
+        // decodedText will be the 5-digit code (e.g., "82159")
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+
+        // 1. Find the text input and auto-fill it
+        let codeInput = document.getElementById('order_id');
+        codeInput.value = decodedText;
+
+        // 2. Stop the scanner
+        html5QrcodeScanner.clear();
+
+        // 3. (Optional) Auto-submit the form for the vendor
+        // document.forms[0].submit(); 
+        // For now, we'll let them click "Verify" manually
+    }
+
+    // This function runs when the "Start Scan" button is clicked
+    document.getElementById('start-scan-btn').addEventListener('click', () => {
+        // Initialize the scanner
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader", // The ID of the div we created
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false);
+
+        // Start the scanner
+        html5QrcodeScanner.render(onScanSuccess);
+
+        // Hide the button so they don't click it twice
+        document.getElementById('start-scan-btn').style.display = 'none';
+    });
+</script>
+
+
+</html>

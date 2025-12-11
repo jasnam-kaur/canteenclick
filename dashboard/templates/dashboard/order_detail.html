@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Details</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f9f9f9; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .order-info { margin-bottom: 20px; }
+        .item-list { list-style: none; padding: 0; }
+        .item-list li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .item-list li span { font-weight: bold; }
+        .status-form { margin-top: 30px; }
+        .status-form select { padding: 10px; font-size: 1em; }
+        .status-form button { padding: 10px 15px; font-size: 1em; background: #007bff; color: white; border: none; cursor: pointer; }
+
+        /* --- NEW: Timeline Styles --- */
+        .timeline { list-style: none; padding: 0; margin-top: 20px; }
+        .timeline li { padding: 10px; border-left: 3px solid #ddd; margin-left: 10px; }
+        .timeline li.done { border-left-color: #28a745; }
+        .timeline li.cancelled { border-left-color: #dc3545; }
+        .timeline-time { font-size: 0.9em; color: #777; }
+        .timeline-event { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'dashboard-home' %}">&larr; Back to Dashboard</a>
+
+        <h1>Order #{{ order.id }}</h1>
+
+        <div class="order-info">
+            <p><strong>Customer:</strong> {{ order.user.username }}</p>
+            <p><strong>Current Status:</strong> {{ order.get_status_display }}</p>
+
+            {% if order.is_ready_to_eat_purchase %}
+                <p style="color: #28a745; font-weight: bold;">(This was a "Ready-to-Eat" purchase)</p>
+            {% endif %}
+        </div>
+
+        <h3>Order Timeline</h3>
+        <ul class="timeline">
+            <li class="done">
+                <div class="timeline-time">{{ order.created_at|date:"d M Y, H:i:s" }}</div>
+                <div class="timeline-event">Order Received (Pending)</div>
+            </li>
+
+            {% if order.preparing_at %}
+            <li class="done">
+                <div class="timeline-time">{{ order.preparing_at|date:"d M Y, H:i:s" }}</div>
+                <div class="timeline-event">Order Preparing</div>
+            </li>
+            {% endif %}
+
+            {% if order.ready_at %}
+            <li class="done">
+                <div class="timeline-time">{{ order.ready_at|date:"d M Y, H:i:s" }}</div>
+                <div class="timeline-event">Order Ready for Pickup</div>
+            </li>
+            {% endif %}
+
+            {% if order.cancelled_at %}
+            <li class="cancelled">
+                <div class="timeline-time">{{ order.cancelled_at|date:"d M Y, H:i:s" }}</div>
+                <div class="timeline-event">Order Cancelled</div>
+                <div class="timeline-reason">
+                    &nbsp; &nbsp; <strong>By:</strong> {{ order.get_cancelled_by_display }} <br>
+                    &nbsp; &nbsp; <strong>Reason:</strong> {{ order.cancellation_reason }}
+                </div>
+            </li>
+            {% endif %}
+
+            {% if order.completed_at %}
+            <li class="done">
+                <div class="timeline-time">{{ order.completed_at|date:"d M Y, H:i:s" }}</div>
+                {% if order.is_ready_to_eat_purchase %}
+                    <div class="timeline-event">"Ready-to-Eat" Item Claimed</div>
+                {% else %}
+                    <div class="timeline-event">Order Completed (Claimed)</div>
+                {% endif %}
+            </li>
+            {% endif %}
+        </ul>
+        <h5 class="mb-3">Items in this Order</h5>
+<ul class="list-group list-group-flush mb-3">
+
+  {% for item in order_items %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+      <strong>{{ item.item_variation.menu_item.name }}</strong>
+
+      <small class="text-muted ms-2">{{ item.item_variation.name }}</small>
+    </div>
+
+    <span class="text-muted">
+      {{ item.quantity }} x ₹{{ item.price_at_order }}
+    </span>
+  </li>
+  {% endfor %}
+
+</ul>
+
+        {% if order.status == 'Pending' or order.status == 'Preparing' or order.status == 'Ready for Pickup' %}
+            <form class="status-form" method="POST">
+                {% csrf_token %}
+                <label for="status"><strong>Update Status:</strong></label>
+                <select name="status" id="status">
+                    {% for value, display_name in order.STATUS_CHOICES %}
+                        {% if value == 'Pending' or value == 'Preparing' or value == 'Ready for Pickup' %}
+                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                            {{ display_name }}
+                        </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button type="submit">Update</button>
+            </form>
+
+            <div style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+                <h4 style="color: #dc3545;">Cancel This Order</h4>
+                <form action="{% url 'cancel-order' order.id %}" method="POST">
+                    {% csrf_token %}
+                    <label for="cancel-reason">Reason for Cancellation:</label>
+                    <select name="reason" id="cancel-reason" style="padding: 8px; margin-top: 5px;">
+                        <option value="Student No-Show">Student No-Show</option>
+                        <option value="Out of Stock">Item Out of Stock</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <button type="submit" style="background: #dc3545; color: white; padding: 10px; border: none; cursor: pointer; margin-top: 10px;">
+                        Confirm Cancellation
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

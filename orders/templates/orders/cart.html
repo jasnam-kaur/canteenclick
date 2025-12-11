@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Cart - CanteenClick{% endblock %}
+
+{% block style %}
+<style>
+    /* Custom styles for the cart page */
+    .cart-item-row {
+        vertical-align: middle;
+    }
+
+    .item-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: var(--canteen-charcoal);
+    }
+
+    .item-variation {
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+
+    .cart-total-summary {
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+    .cart-total-price {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--canteen-orange);
+        /* Use your action color for the price */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-5">
+
+    <div class="col-md-7 col-lg-8">
+        <h1 class="display-6 fw-bold mb-4">Your Shopping Cart</h1>
+
+        {% if cart_items %}
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Item</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for item in cart_items %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.item_variation.menu_item.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ item.item_variation.name }}</small>
+                            </td>
+                            <td>
+                                {{ item.quantity }}
+                            </td>
+                            <td>₹{{ item.item_variation.price }}</td>
+                            <td><strong>₹{{ item.get_total_price }}</strong></td>
+
+                            <td>
+                                <a href="{% url 'remove-from-cart' item.id %}" class="btn btn-outline-danger btn-sm"
+                                    title="Remove item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-trash" viewBox="0 0 16 16">
+                                        <path
+                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                        <path fill-rule="evenodd"
+                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">Your cart is empty!</h4>
+            <p>Looks like you haven't added any items yet. Head over to the menu to find something delicious.</p>
+            <hr>
+            <a href="{% url 'core:home' %}" class="btn btn-primary">View Menu</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if cart_items %}
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0 position-sticky" style="top: 2rem;">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold">Order Summary</h4>
+                <div class="d-flex justify-content-between mt-4 mb-3 cart-total-summary">
+                    <span>Subtotal:</span>
+                    <span>₹{{ total_price }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between cart-total-price mt-3">
+                    <span>Total:</span>
+                    <span>₹{{ total_price }}</span>
+                </div>
+
+                <form action="{% url 'place-order' %}" method="POST">
+
+                    {% csrf_token %}
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-4">
+                        Place Order (Cash on Pickup)
+                    </button>
+
+                </form>
+                <div class="text-center mt-3">
+                    <a href="{% url 'core:home' %}" class="text-decoration-none small">&larr; Continue Ordering</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
